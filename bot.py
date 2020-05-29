@@ -34,8 +34,6 @@ FIRST, SECOND = range(2)
 # Callback data
 ONE, TWO, THREE, FOUR = range(4)
 
-images = {}
-
 
 def start(update, context):
     """Send message on `/start`."""
@@ -43,7 +41,7 @@ def start(update, context):
     chat_id = update.effective_chat.id
     image = context.bot.send_photo(chat_id=chat_id,
                                    photo='https://telegram.org/img/t_logo.png')
-    images[chat_id] = image
+    context.chat_data['image'] = image
     # Get user that sent /start and log his name
     user = update.message.from_user
     logger.info("User %s started the conversation.", user.first_name)
@@ -87,8 +85,7 @@ def start_over(update, context):
 
 def one(update, context):
     """Show new choice of buttons"""
-    chat_id = update.effective_chat.id
-    images[chat_id].edit_media(
+    context.chat_data['image'].edit_media(
         InputMediaPhoto('https://telegram.org/img/t_logo.png'))
     query = update.callback_query
     query.answer()
@@ -104,13 +101,13 @@ def one(update, context):
 
 def two(update, context):
     """Show new choice of buttons"""
-    chat_id = update.effective_chat.id
-    images[chat_id].edit_media(
+    context.chat_data['image'].edit_media(
         InputMediaPhoto(
             'https://www.startertutorials.com/blog/wp-content/uploads/2018/04/python-logo.png'
         ))
     query = update.callback_query
     query.answer()
+    print(query.data)
     keyboard = [[
         InlineKeyboardButton("1", callback_data=str(ONE)),
         InlineKeyboardButton("3", callback_data=str(THREE))
@@ -141,8 +138,7 @@ def three(update, context):
 
 def four(update, context):
     """Show new choice of buttons"""
-    chat_id = update.effective_chat.id
-    images[chat_id].edit_media(
+    context.chat_data['image'].edit_media(
         InputMediaPhoto(
             r'https://framex-dev.wadrid.net/api/video/Falcon%20Heavy%20Test%20Flight%20(Hosted%20Webcast)-wbSwFU6tY1c/frame/1695/'
         ))
