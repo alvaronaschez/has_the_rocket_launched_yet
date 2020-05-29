@@ -1,0 +1,17 @@
+{
+    "python.pythonPath": "env/bin/python",
+    "gitProjectManager.baseProjectsFolders": [
+        "~/Workspace"
+    ],
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "yapf",
+    "python.formatting.yapfArgs": [
+        "--style",
+        "{based_on_style: pep8, indent_width: 4,}",
+    ],
+    "editor.formatOnSave": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+}
