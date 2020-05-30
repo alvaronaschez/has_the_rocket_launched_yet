@@ -14,11 +14,14 @@ ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
+import logging
+import os
+import sys
+
 from telegram import (InlineKeyboardButton, InlineKeyboardMarkup,
                       InputMediaPhoto)
 from telegram.ext import (Updater, CommandHandler, CallbackQueryHandler,
                           ConversationHandler)
-import logging
 
 import config
 
