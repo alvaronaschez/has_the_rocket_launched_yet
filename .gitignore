@@ -1,4 +1,4 @@
 env/
 __pycache__
 .pytest_cache/
-config.py
+config.sh

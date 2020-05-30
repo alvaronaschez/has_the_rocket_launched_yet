@@ -23,14 +23,41 @@ from telegram import (InlineKeyboardButton, InlineKeyboardMarkup,
 from telegram.ext import (Updater, CommandHandler, CallbackQueryHandler,
                           ConversationHandler)
 
-import config
-
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+# Getting bot token
+TOKEN = os.getenv("TOKEN")
+
+# Getting mode, so we could define run function for local and Heroku setup
+MODE = os.getenv("MODE")
+
+if MODE == "dev":
+
+    def run(updater):
+        # Start the Bot
+        updater.start_polling()
+        # Run the bot until you press Ctrl-C or the process receives SIGINT,
+        # SIGTERM or SIGABRT. This should be used most of the time, since
+        # start_polling() is non-blocking and will stop the bot gracefully.
+        updater.idle()
+elif MODE == "prod":
+
+    def run(updater):
+        PORT = int(os.environ.get('PORT', '8443'))
+        # add handlers
+        updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
+        updater.bot.set_webhook(f"https://<appname>.herokuapp.com/{TOKEN}")
+        # Run the bot until you press Ctrl-C or the process receives SIGINT,
+        # SIGTERM or SIGABRT.
+        updater.idle()
+else:
+    logger.error("No MODE specified!")
+    sys.exit(1)
 
 # Stages
 FIRST, SECOND = range(2)
@@ -173,7 +200,7 @@ def error(update, context):
 
 def main():
     # Create the Updater and pass it your bot's token.
-    updater = Updater(token=config.token, use_context=True)
+    updater = Updater(token=TOKEN, use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -207,13 +234,7 @@ def main():
     # log all errors
     dp.add_error_handler(error)
 
-    # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
+    run(updater)
 
 
 if __name__ == '__main__':
