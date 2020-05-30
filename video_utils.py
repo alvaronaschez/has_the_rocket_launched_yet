@@ -31,7 +31,7 @@ class FrameX(SequenceOfFrames):
         self.length = None
 
     def __getitem__(self, key: int) -> str:
-        url = f"https://{self.api_domain}/api/video/{self.video_name}/frame/{key}/"
+        url = f"https://{self.api_domain}/api/video/{self.video_name}/frame/{key}/"  # noqa
         return url
 
     def __len__(self) -> int:
