@@ -23,6 +23,8 @@ from telegram import (InlineKeyboardButton, InlineKeyboardMarkup,
 from telegram.ext import (Updater, CommandHandler, CallbackQueryHandler,
                           ConversationHandler)
 
+from video_utils import FrameX, SequenceOfFrames
+
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -62,7 +64,9 @@ else:
 # Stages
 FIRST, SECOND = range(2)
 # Callback data
-ONE, TWO, THREE, FOUR = range(4)
+ONE, TWO, THREE, FOUR = range(10, 14)
+
+frames: SequenceOfFrames = FrameX()
 
 
 def start(update, context):
@@ -168,10 +172,7 @@ def three(update, context):
 
 def four(update, context):
     """Show new choice of buttons"""
-    context.chat_data['image'].edit_media(
-        InputMediaPhoto(
-            r'https://framex-dev.wadrid.net/api/video/Falcon%20Heavy%20Test%20Flight%20(Hosted%20Webcast)-wbSwFU6tY1c/frame/1695/'
-        ))
+    context.chat_data['image'].edit_media(InputMediaPhoto(frames[1695]))
     query = update.callback_query
     query.answer()
     keyboard = [[

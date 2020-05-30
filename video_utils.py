@@ -7,7 +7,7 @@ import httpx
 
 class SequenceOfFrames(ABC):
     @abstractmethod
-    def __getitem__(self, key: int) -> Union(str, BinaryIO):
+    def __getitem__(self, key: int) -> Union[str, BinaryIO]:
         """
         Photo to send. Pass a file_id as String to send a photo
         that exists on the Telegram servers (recommended),
@@ -30,10 +30,15 @@ class FrameX(SequenceOfFrames):
             self.video_name = quote(video_name)
 
     def __getitem__(self, key: int) -> str:
-        url = f"https://{self.api_domain}/api/video/{self.video_name}/{key}/"
+        url = f"https://{self.api_domain}/api/video/{self.video_name}/frame/{key}/"
         return url
 
     def __len__(self) -> int:
         url = f"https://{self.api_domain}/api/video/{self.video_name}"
         response = httpx.get(url)
         return response.json()["frames"]
+
+
+frames = FrameX()
+frame = frames[1695]
+print(frame)
