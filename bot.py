@@ -64,32 +64,35 @@ else:
 # Stages
 FIRST, SECOND = range(2)
 # Callback data
-ONE, TWO, THREE, FOUR = range(10, 14)
+NO, YES = range(2)
 
+# object that will give us the frames
 frames: SequenceOfFrames = FrameX()
 
 
 def start(update, context):
     """Send message on `/start`."""
-    global image
     chat_id = update.effective_chat.id
-    image = context.bot.send_photo(chat_id=chat_id,
-                                   photo='https://telegram.org/img/t_logo.png')
-    context.chat_data['image'] = image
     # Get user that sent /start and log his name
     user = update.message.from_user
-    logger.info("User %s started the conversation.", user.first_name)
+    logger.info(f"User {user.first_name} started the conversation.")
+    # init the binary search through the frames
+    left, right = 0, len(frames) - 1
+    context.chat_data['left'] = left
+    context.chat_data['right'] = right
+    middle = (left + right) // 2
+    photo = frames[middle]
+    image = context.bot.send_photo(chat_id=chat_id, photo=photo)
+    context.chat_data['image'] = image
     # Build InlineKeyboard where each button has a displayed text
     # and a string as callback_data
-    # The keyboard is a list of button rows, where each row is in turn
-    # a list (hence `[[...]]`).
     keyboard = [[
-        InlineKeyboardButton("1", callback_data=str(ONE)),
-        InlineKeyboardButton("2", callback_data=str(TWO))
+        InlineKeyboardButton("Yes", callback_data=str(YES)),
+        InlineKeyboardButton("No", callback_data=str(NO))
     ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
-    update.message.reply_text("Start handler, Choose a route",
+    update.message.reply_text(f"frame {middle} -  did the rocket launch yet?",
                               reply_markup=reply_markup)
     # Tell ConversationHandler that we're in state `FIRST` now
     return FIRST
@@ -105,8 +108,8 @@ def start_over(update, context):
     # See https://core.telegram.org/bots/api#callbackquery
     query.answer()
     keyboard = [[
-        InlineKeyboardButton("1", callback_data=str(ONE)),
-        InlineKeyboardButton("2", callback_data=str(TWO))
+        InlineKeyboardButton("1", callback_data=str(YES)),
+        InlineKeyboardButton("2", callback_data=str(NO))
     ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Instead of sending a new message, edit the message that
@@ -119,20 +122,46 @@ def start_over(update, context):
 
 def one(update, context):
     """Show new choice of buttons"""
-    context.chat_data['image'].edit_media(
-        InputMediaPhoto('https://telegram.org/img/t_logo.png'))
+    # Get CallbackQuery from Update
     query = update.callback_query
+    # CallbackQueries need to be answered,
+    # even if no notification to the user is needed
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
     query.answer()
+
+    left = context.chat_data["left"]
+    right = context.chat_data["right"]
+    if left >= right:
+        return SECOND
+
+    middle = (left + right) // 2
+
+    # we are searching the first frame in which the rocket
+    # has taken off
+    if int(query.data) is YES:
+        right = middle
+        context.chat_data["right"] = right
+    else:
+        left = middle + 1
+        context.chat_data["left"] = left
+
+    middle = (left + right) // 2
+
+    context.chat_data['image'].edit_media(InputMediaPhoto(frames[middle]))
+
     keyboard = [[
-        InlineKeyboardButton("3", callback_data=str(THREE)),
-        InlineKeyboardButton("4", callback_data=str(FOUR))
+        InlineKeyboardButton("Yes", callback_data=str(YES)),
+        InlineKeyboardButton("No", callback_data=str(NO))
     ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text="First CallbackQueryHandler, Choose a route",
-                            reply_markup=reply_markup)
+    query.edit_message_text(
+        text=f"frame {middle} -  did the rocket launch yet?",
+        reply_markup=reply_markup)
     return FIRST
 
 
+'''
 def two(update, context):
     """Show new choice of buttons"""
     context.chat_data['image'].edit_media(
@@ -183,6 +212,7 @@ def four(update, context):
     query.edit_message_text(text="Fourth CallbackQueryHandler, Choose a route",
                             reply_markup=reply_markup)
     return FIRST
+'''
 
 
 def end(update, context):
@@ -216,14 +246,11 @@ def main():
         entry_points=[CommandHandler('start', start)],
         states={
             FIRST: [
-                CallbackQueryHandler(one, pattern='^' + str(ONE) + '$'),
-                CallbackQueryHandler(two, pattern='^' + str(TWO) + '$'),
-                CallbackQueryHandler(three, pattern='^' + str(THREE) + '$'),
-                CallbackQueryHandler(four, pattern='^' + str(FOUR) + '$')
+                CallbackQueryHandler(one),
             ],
             SECOND: [
-                CallbackQueryHandler(start_over, pattern='^' + str(ONE) + '$'),
-                CallbackQueryHandler(end, pattern='^' + str(TWO) + '$')
+                CallbackQueryHandler(start_over, pattern='^' + str(YES) + '$'),
+                CallbackQueryHandler(end, pattern='^' + str(NO) + '$')
             ]
         },
         fallbacks=[CommandHandler('start', start)])

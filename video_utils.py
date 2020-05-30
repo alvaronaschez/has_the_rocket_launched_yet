@@ -28,15 +28,19 @@ class FrameX(SequenceOfFrames):
     def __init__(self, video_name=None):
         if video_name:
             self.video_name = quote(video_name)
+        self.length = None
 
     def __getitem__(self, key: int) -> str:
         url = f"https://{self.api_domain}/api/video/{self.video_name}/frame/{key}/"
         return url
 
     def __len__(self) -> int:
-        url = f"https://{self.api_domain}/api/video/{self.video_name}"
-        response = httpx.get(url)
-        return response.json()["frames"]
+        # the computation is expensive, so lets do it only once
+        if self.length is None:
+            url = f"https://{self.api_domain}/api/video/{self.video_name}"
+            response = httpx.get(url)
+            self.length = response.json()["frames"]
+        return self.length
 
 
 frames = FrameX()
