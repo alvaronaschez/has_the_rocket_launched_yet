@@ -31,7 +31,7 @@ MODE = os.getenv("MODE")
 # set dev or prod mode
 if MODE == "dev":
 
-    def run(updater):
+    def run(updater: Updater):
         # Start the Bot
         updater.start_polling()
         # Run the bot until you press Ctrl-C or the process receives SIGINT,
@@ -40,7 +40,7 @@ if MODE == "dev":
         updater.idle()
 elif MODE == "prod":
 
-    def run(updater):
+    def run(updater: Updater):
         PORT = int(os.environ.get('PORT', '8443'))
         # add handlers
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
