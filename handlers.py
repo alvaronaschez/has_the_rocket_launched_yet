@@ -7,21 +7,24 @@ from telegram.ext import (CommandHandler, CallbackQueryHandler,
 
 from video_utils import FrameX, SequenceOfFrames
 
+# Enable logging
+logger = logging.getLogger(__name__)
+
 # Stages
 FIRST, SECOND = range(2)
 # Callback data
-NO, YES = range(2)
+NO, YES = map(str, range(2))
 
 # object that will give us the frames
 frames: SequenceOfFrames = FrameX()
 
 
-def start(update, context):
+def start_callback(update, context):
     """Send message on `/start`."""
     chat_id = update.effective_chat.id
     # Get user that sent /start and log his name
     user = update.effective_user
-    logging.info(f"User {user.first_name} started the conversation.")
+    logger.info(f"User {user.first_name} started the conversation.")
     # init the binary search through the frames
     left, right = 0, len(frames) - 1
     context.chat_data['left'] = left
@@ -35,8 +38,8 @@ def start(update, context):
     # Build InlineKeyboard where each button has a displayed text
     # and a string as callback_data
     keyboard = [[
-        InlineKeyboardButton("Yes", callback_data=str(YES)),
-        InlineKeyboardButton("No", callback_data=str(NO))
+        InlineKeyboardButton("Yes", callback_data=YES),
+        InlineKeyboardButton("No", callback_data=NO)
     ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
@@ -53,17 +56,17 @@ def start(update, context):
     return FIRST
 
 
-def start_over(update, context):
+def start_over_callback(update, context):
     query = update.callback_query
     left = context.chat_data["left"]
     query.edit_message_text(
         text=f"Found! Take-off = {left} - Do you want to play again?")
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Great! Let's go!!")
-    return start(update, context)
+    return start_callback(update, context)
 
 
-def one(update, context):
+def bisect_callback(update, context):
     """Show new choice of buttons"""
     # Get CallbackQuery from Update
     query = update.callback_query
@@ -81,7 +84,7 @@ def one(update, context):
 
     # we are searching the first frame in which the rocket
     # has taken off
-    if int(query.data) is YES:
+    if query.data == YES:
         right = middle
         context.chat_data["right"] = right
     else:
@@ -100,8 +103,8 @@ def one(update, context):
             pass
 
         keyboard = [[
-            InlineKeyboardButton("Yes", callback_data=str(YES)),
-            InlineKeyboardButton("No", callback_data=str(NO))
+            InlineKeyboardButton("Yes", callback_data=YES),
+            InlineKeyboardButton("No", callback_data=NO)
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         query.edit_message_text(
@@ -116,8 +119,8 @@ def one(update, context):
             pass
 
         keyboard = [[
-            InlineKeyboardButton("Yes", callback_data=str(YES)),
-            InlineKeyboardButton("No", callback_data=str(NO))
+            InlineKeyboardButton("Yes", callback_data=YES),
+            InlineKeyboardButton("No", callback_data=NO)
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         query.edit_message_text(
@@ -126,7 +129,7 @@ def one(update, context):
         return FIRST
 
 
-def end(update, context):
+def end_callback(update, context):
     """Returns `ConversationHandler.END`, which tells the
     ConversationHandler that the conversation is over"""
     query = update.callback_query
@@ -137,19 +140,19 @@ def end(update, context):
 
 def error(update, context):
     """Log Errors caused by Updates."""
-    logging.warning('Update "%s" caused error "%s"', update, context.error)
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
 # Setup conversation handler with the states FIRST and SECOND
 conv_handler = ConversationHandler(
-    entry_points=[CommandHandler('start', start)],
+    entry_points=[CommandHandler('start', start_callback)],
     states={
         FIRST: [
-            CallbackQueryHandler(one),
+            CallbackQueryHandler(bisect_callback),
         ],
         SECOND: [
-            CallbackQueryHandler(start_over, pattern='^' + str(YES) + '$'),
-            CallbackQueryHandler(end, pattern='^' + str(NO) + '$')
+            CallbackQueryHandler(start_over_callback, pattern='^' + YES + '$'),
+            CallbackQueryHandler(end_callback, pattern='^' + NO + '$')
         ]
     },
-    fallbacks=[CommandHandler('start', start)])
+    fallbacks=[CommandHandler('start', start_callback)])

@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Simple inline keyboard bot with multiple CallbackQueryHandlers.
+"""
+Simple inline keyboard bot which performs a binary search in a video
+to find the exact moment in which the rocket has been launched.
 
-This Bot uses the Updater class to handle the bot.
-First, a few callback functions are defined as callback query handler.
-Then, those functions are passed to the Dispatcher and registered
-at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
 Usage:
-Example of a bot that uses inline keyboard that has multiple
-CallbackQueryHandlers arranged in a
-ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
@@ -19,14 +13,14 @@ import os
 import sys
 
 from telegram.ext import Updater
+
 from handlers import conv_handler, error
 
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
-
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # Getting bot token
 TOKEN = os.getenv("TOKEN")
@@ -34,6 +28,7 @@ TOKEN = os.getenv("TOKEN")
 # Getting mode, so we could define run function for local and Heroku setup
 MODE = os.getenv("MODE")
 
+# set dev or prod mode
 if MODE == "dev":
 
     def run(updater):
@@ -54,7 +49,7 @@ elif MODE == "prod":
         # SIGTERM or SIGABRT.
         updater.idle()
 else:
-    logging.error("No MODE specified!")
+    logger.error("No MODE specified!")
     sys.exit(1)
 
 
