@@ -41,10 +41,12 @@ if MODE == "dev":
 elif MODE == "prod":
 
     def run(updater: Updater):
-        PORT = int(os.environ.get('PORT', '8443'))
+        PORT = int(os.environ.get("PORT", "8443"))
+        HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
         # add handlers
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-        updater.bot.set_webhook(f"https://<appname>.herokuapp.com/{TOKEN}")
+        updater.bot.set_webhook(
+            f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
         # Run the bot until you press Ctrl-C or the process receives SIGINT,
         # SIGTERM or SIGABRT.
         updater.idle()

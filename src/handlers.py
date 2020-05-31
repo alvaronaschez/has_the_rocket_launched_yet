@@ -6,9 +6,9 @@ which will going to manage the logic of the bot
 import logging
 
 from telegram import (InlineKeyboardButton, InlineKeyboardMarkup,
-                      InputMediaPhoto, TelegramError, Update, CallbackContext)
+                      InputMediaPhoto, TelegramError, Update)
 from telegram.ext import (CommandHandler, CallbackQueryHandler,
-                          ConversationHandler)
+                          ConversationHandler, CallbackContext)
 
 from video_utils import FrameX, SequenceOfFrames
 
